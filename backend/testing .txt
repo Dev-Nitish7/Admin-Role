@@ -27,6 +27,27 @@ CREATE TABLE users (
 
 ---
 
+//////final   table for   files  
+CREATE TABLE user_files (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  filename TEXT NOT NULL,
+  blobname TEXT NOT NULL,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+//new
+CREATE TABLE user_files (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  filename TEXT NOT NULL,
+  fileurl TEXT NOT NULL,        -- This can store last-used SAS URL (optional)
+  blobname TEXT NOT NULL,       -- Crucial for regenerating fresh URLs
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 ## ✅ 2. `user_files` Table
 
 ```sql
@@ -197,3 +218,30 @@ Authorization: Bearer JWT_TOKEN_HERE
 ---
 
 Would you like me to export this setup as a ready-to-import Postman collection (JSON)?
+
+
+
+✅ How users can access expired files (securely):
+You don’t serve the Azure URL directly to users forever.
+Instead, you serve fresh, time-limited URLs from your backend when needed.
+
+🧩 Here's the process:
+1. You store only:
+filename: Original name (e.g., invoice.pdf)
+
+blobname: Azure blob name (e.g., 1745998343234-invoice.pdf)
+
+2. When a user requests a file:
+Your backend finds the blobname from DB.
+
+Your backend dynamically generates a fresh SAS download URL using generateBlobSASUrl(blobname) (expires in e.g., 10 minutes).
+
+Your backend sends that fresh URL to the user.
+
+💡 Why this works:
+Azure files stay private (container access = private).
+
+SAS token allows time-limited, permission-controlled access.
+
+You can control who gets access — and when.
+

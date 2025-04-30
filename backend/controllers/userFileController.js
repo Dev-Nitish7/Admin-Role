@@ -1,7 +1,7 @@
 import pool from '../config/db.js';
 import { containerClient, generateBlobSASUrl } from '../config/azureBlob.js';
 
-// Upload to Azure
+// Upload to Azure Blob Storage
 export const uploadFileToAzure = async (req, res) => {
   try {
     const { id: userId } = req.user;
@@ -16,22 +16,30 @@ export const uploadFileToAzure = async (req, res) => {
       blobHTTPHeaders: { blobContentType: file.mimetype },
     });
 
-    const sasUrl = await generateBlobSASUrl(blobName);
-
     const result = await pool.query(
-      `INSERT INTO user_files (user_id, filename, fileurl, blobname) 
-       VALUES ($1, $2, $3, $4) RETURNING id, filename, fileurl`,
-      [userId, file.originalname, sasUrl, blobName]
+      `INSERT INTO user_files (user_id, filename, blobname) 
+       VALUES ($1, $2, $3) RETURNING id, filename, blobname`,
+      [userId, file.originalname, blobName]
     );
 
-    res.status(201).json({ message: "File uploaded successfully", file: result.rows[0] });
+    // Optional: send URL in response (for immediate preview)
+    const fileurl = await generateBlobSASUrl(blobName);
+
+    res.status(201).json({
+      message: "File uploaded successfully",
+      file: {
+        ...result.rows[0],
+        fileurl
+      }
+    });
   } catch (err) {
     console.error("Upload Error:", err);
     res.status(500).json({ message: "Upload failed" });
   }
 };
 
-// View own files
+
+// Get files uploaded by the logged-in user
 export const getUserFiles = async (req, res) => {
   try {
     const { id: userId } = req.user;
@@ -56,7 +64,7 @@ export const getUserFiles = async (req, res) => {
   }
 };
 
-// View all files (for all users)
+// Get all files (accessible to all authenticated users)
 export const getAllFiles = async (req, res) => {
   try {
     const result = await pool.query(
