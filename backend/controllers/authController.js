@@ -39,6 +39,7 @@ export const register = async (req, res) => {
   }
 };
 
+
 export const login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -68,28 +69,17 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
-    res.status(200).json({ message: 'Login successful' });
+    res.status(200).json({
+      message: 'Login successful',
+      role: user.role // <-- Send the user's role in response
+    });
   } catch (err) {
     console.error('Error logging in:', err);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
 
-export const getMe = async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
 
-    res.status(200).json({
-      id: req.user.id,
-      role: req.user.role,
-    });
-  } catch (error) {
-    console.error('Error in getMe:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
