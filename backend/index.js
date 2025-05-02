@@ -14,7 +14,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use(cors({
-  origin: 'https://cau-tally-files-frontend.vercel.app/',
+  origin: 'https://cau-tally-files-frontend.vercel.app',
   credentials: true,
 }));
 
