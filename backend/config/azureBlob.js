@@ -15,9 +15,9 @@ const blobServiceClient = new BlobServiceClient(
 
 export const containerClient = blobServiceClient.getContainerClient(containerName);
 
-// Generate a SAS URL valid for 2 minutes
+// Generate a SAS URL valid for  1hr
 export const generateBlobSASUrl = async (blobName) => {
-  const expiresOn = new Date(Date.now() + 1 * 60 * 1000); // 1min
+  const expiresOn = new Date(Date.now() + 1 * 60* 60 * 1000); // 1hr
 
 
   const sasToken = generateBlobSASQueryParameters({
