@@ -85,3 +85,32 @@ export const getAllFiles = async (req, res) => {
     res.status(500).json({ message: "Error fetching all files" });
   }
 };
+
+
+
+
+
+
+export const downloadFile = async (req, res) => {
+  const fileId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      'SELECT blobname FROM user_files WHERE id = $1',
+      [fileId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    const blobName = result.rows[0].blobname;
+    const downloadUrl = await generateBlobSASUrl(blobName);
+
+    return res.status(200).json({ downloadUrl });
+
+  } catch (err) {
+    console.error('Error generating SAS URL:', err);
+    res.status(500).json({ message: 'Server error during file download' });
+  }
+};
